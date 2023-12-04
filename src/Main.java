@@ -5,125 +5,138 @@ import java.time.temporal.ChronoUnit;
 
 
 
-    class Trivia {
+class Trivia {
 
 
 
-        public static class Main {
-            public static void main(String[] args) {
-                String file = "TriviaSample.txt";
-                LocalDate userRegistrationDate = LocalDate.of(2023, 11, 27);
-                displayTrivia(file, userRegistrationDate);
-            }
+    public static class Main {
+        public static void main(String[] args) {
+            String file = "TriviaSample.txt";
+            LocalDate registrationDate = LocalDate.of(2023, 11, 28);
+            displayTrivia(file, registrationDate);
+        }
 
-            public static void displayTrivia(String file, LocalDate userRegistrationDate) {
-                try (FileReader reader = new FileReader(file);
-                     BufferedReader br = new BufferedReader(reader)) {
+        public static void displayTrivia(String file, LocalDate registrationDate) {
+            try (FileReader reader = new FileReader(file);
+                 BufferedReader br = new BufferedReader(reader)) {
+                String line;
+                int totalPoints = 0;
+                int dayCount = calculateDay(registrationDate, LocalDate.now());
+                int questionCount = 0;
 
-                    String line;
-                    int totalPoints = 0;
-                    int dayCount = calculateDayCount(userRegistrationDate, LocalDate.now());
+                while ((line = br.readLine()) != null) {
+                    String option;
+                    String answer;
+                    String question = line;
 
-                    // Display trivia questions based on the current day
-                    for (int i = dayCount; (line = br.readLine()) != null; i++) {
-                        String question = line;
-                        List<String> choices = parseChoices(br.readLine());
-                        String answer = br.readLine();
-                        String blank = br.readLine();  // Skip the blank line
+//                    In case the questions are in multiple lines
+                    String nextLine = br.readLine();
+                    if(nextLine.contains("?")){
+                        question= line +"\n"+ nextLine;
+                     option = br.readLine();}
+                    else{ option = nextLine;}
 
-                        // Check if there is another line for the question
-                        String nextLine;
-                        while ((nextLine = br.readLine()) != null && !nextLine.isEmpty()) {
-                            question += "\n" + nextLine;  // Append additional lines to the question
-                        }
-
-                        int points = presentQuestion(i + 1, question, choices, answer, blank);
-                        totalPoints += points;
-
-                        System.out.println("You have been awarded " + points + " point(s), you now have " + totalPoints + " points.\n");
+//                    In case options in multiple lines
+                    String lineAfterQuestion = br.readLine();
+                    if(lineAfterQuestion.contains(",")||lineAfterQuestion.contains("character")){
+                        option = option + lineAfterQuestion;
+                        answer = br.readLine();
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    else{answer = lineAfterQuestion;}
+                    String[] choice = displayOptions(option);
+                    List<String> choices= Arrays.asList(choice);
+                    String blank = br.readLine();
+
+                    // Increment the question counter
+                    questionCount++;
+
+
+                    // Display the question based on dayCount
+                    if (questionCount == dayCount) {
+                        int points = displayQuestion(dayCount, question, choices, answer, blank);
+                        totalPoints += points;
+                        System.out.println("You have been awarded " + points + " point(s), you now have " + totalPoints + " points.\n");
+                        dayCount++;
+                        break;
+                    }
                 }
+//                catch and identify the errors when the code runs
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public static int calculateDay(LocalDate RegistrationDate, LocalDate currentDate) {
+            long days = ChronoUnit.DAYS.between(RegistrationDate, currentDate)+1;
+            return (int) days ;
+        }
+
+        public static <choices> int displayQuestion(int dayCount, String question,  List<String> choices, String answer, String blank) {
+            Scanner scanner = new Scanner(System.in);
+
+            System.out.println("Day " + dayCount + " Trivia (Attempt #1)");
+            System.out.println("======================================================================");
+            System.out.println(question);
+
+            // Change the arrangement of options
+            Collections.shuffle(choices);
+
+            char option = 'A';
+            for (String choice : choices) {
+                System.out.println("[" + option + "] " + choice);
+                option++;
+            }
+            System.out.println("======================================================================");
+
+            // User input
+            System.out.print("Enter your answer (A/B/C/D): ");
+            char userChoice = scanner.next().charAt(0);
+
+            // Validate user input
+            int choiceIndex = userChoice - 'A';
+            if (choiceIndex < 0 || choiceIndex >= 4) {
+                System.out.println("Invalid choice. Try again.");
+                return 0;
             }
 
-            public static int calculateDayCount(LocalDate userRegistrationDate, LocalDate currentDate) {
-                long days = ChronoUnit.DAYS.between(userRegistrationDate, currentDate);
-                return (int) days ;
-            }
+            // Check if the user's choice is correct
+            if (choices.get(choiceIndex).equals(answer)) {
+                System.out.println("Congratulations! You answered it correctly.\n");
+                return 2; // 2 points for the first attempt
+            } else {
+                System.out.println("Whoops, that doesn’t look right, try again!\n");
 
-            public static int presentQuestion(int dayCount, String question, List<String> choices, String answer, String blank) {
-                Scanner scanner = new Scanner(System.in);
-
-                System.out.println("Day " + dayCount + " Trivia (Attempt #1)");
+                // Second attempt
+                System.out.println("Day " + dayCount + " Trivia (Attempt #2)");
                 System.out.println("======================================================================");
                 System.out.println(question);
 
-                // Shuffle options
+                // Rearrange options for the second attempt
                 Collections.shuffle(choices);
 
-                char option = 'A';
+                option = 'A';
                 for (String choice : choices) {
                     System.out.println("[" + option + "] " + choice);
                     option++;
                 }
                 System.out.println("======================================================================");
 
-                // User input
+                // User input for the second attempt
                 System.out.print("Enter your answer (A/B/C/D): ");
-                char userChoice = scanner.next().charAt(0);
+                userChoice = scanner.next().charAt(0);
 
                 // Validate user input
-                int choiceIndex = userChoice - 'A';
-                if (choiceIndex < 0 || choiceIndex >= 4) {
-                    System.out.println("Invalid choice. Try again.");
-                    return 0;
-                }
-
-                // Check if the user's choice is correct
+                choiceIndex = userChoice - 'A';
                 if (choices.get(choiceIndex).equals(answer)) {
                     System.out.println("Congratulations! You answered it correctly.\n");
-                    return 2; // 2 points for the first attempt
+                    return 1; // 1 point for the second attempt
                 } else {
-                    System.out.println("Whoops, that doesn’t look right, try again!\n");
-
-                    // Second attempt
-                    System.out.println("Day " + dayCount + " Trivia (Attempt #2)");
-                    System.out.println("======================================================================");
-                    System.out.println(question);
-
-                    // Shuffle options for the second attempt
-                    Collections.shuffle(choices);
-
-                    option = 'A';
-                    for (String choice : choices) {
-                        System.out.println("[" + option + "] " + choice);
-                        option++;
-                    }
-                    System.out.println("======================================================================");
-
-                    // User input for the second attempt
-                    System.out.print("Enter your answer (A/B/C/D): ");
-                    userChoice = scanner.next().charAt(0);
-
-                    // Validate user input
-                    choiceIndex = userChoice - 'A';
-                    if (choices.get(choiceIndex).equals(answer)) {
-                        System.out.println("Congratulations! You answered it correctly.\n");
-                        return 1; // 1 point for the second attempt
-                    } else {
-                        System.out.printf("Incorrect. The correct answer is: %s \n" , answer);
-                        return 0; // 0 points for incorrect answer
-                    }
+                    System.out.printf("Incorrect. The correct answer is: %s \n" , answer);
+                    return 0; // 0 points for incorrect answer
                 }
             }
+        }
 
-            public static List<String> parseChoices(String choicesLine) {
-                return Arrays.asList(choicesLine.split(","));
-            }
-        }}
-
-
-
-
-
+        public static String[] displayOptions(String optionLine){
+            return optionLine.split(",");}
+    }}

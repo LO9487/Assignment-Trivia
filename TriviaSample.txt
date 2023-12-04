@@ -1,5 +1,5 @@
-More than 70% of our planet is covered by the ocean. But, do you know what percentage of the
-ocean is designated as protected?
+More than 70% of our planet is covered by the ocean. But, do you know
+what percentage of the ocean is designated as protected?
 4%,10%,25%,50%
 4%
 
@@ -22,7 +22,7 @@ risk of extinction?
 20-30%
 
 What does the term biodiversity mean?
-The total variety of all life on earth,Lots of wild habitats,Diff erent types of species,The variety of
+The total variety of all life on earth,Lots of wild habitats,Different types of species,The variety of
 characteristics within a species
 The total variety of all life on earth
 
