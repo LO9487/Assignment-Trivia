@@ -137,6 +137,7 @@ class Trivia {
             }
         }
 
+        // Split the options in the txt file
         public static String[] displayOptions(String optionLine){
             return optionLine.split(",");}
     }}
