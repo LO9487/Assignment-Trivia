@@ -12,6 +12,7 @@ class Trivia {
     public static class Main {
         public static void main(String[] args) {
             String file = "TriviaSample.txt";
+            // edit
             LocalDate registrationDate = LocalDate.of(2023, 11, 28);
             displayTrivia(file, registrationDate);
         }
