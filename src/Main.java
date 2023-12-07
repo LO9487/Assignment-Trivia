@@ -3,75 +3,99 @@ import java.util.*;
 import java.time.*;
 import java.time.temporal.ChronoUnit;
 
-
-
 class Trivia {
-
-
 
     public static class Main {
         public static void main(String[] args) {
             String file = "TriviaSample.txt";
-            LocalDate registrationDate = LocalDate.of(2023, 11, 28);
+            LocalDate registrationDate = LocalDate.of(2023, 12, 1);
             displayTrivia(file, registrationDate);
         }
 
         public static void displayTrivia(String file, LocalDate registrationDate) {
             try (FileReader reader = new FileReader(file);
                  BufferedReader br = new BufferedReader(reader)) {
-                String line;
-                int totalPoints = 0;
-                int dayCount = calculateDay(registrationDate, LocalDate.now());
-                int questionCount = 0;
 
+                List<TriviaQuestion> questions = new ArrayList<>();
+                int dayCount = calculateDay(registrationDate, LocalDate.now());
+
+                // Read and store questions from the file
+                String line;
                 while ((line = br.readLine()) != null) {
                     String option;
                     String answer;
                     String question = line;
 
-//                    In case the questions are in multiple lines
+                    // In case the questions are in multiple lines
                     String nextLine = br.readLine();
-                    if(nextLine.contains("?")){
-                        question= line +"\n"+ nextLine;
-                     option = br.readLine();}
-                    else{ option = nextLine;}
+                    if (nextLine.contains("?")) {
+                        question = line + "\n" + nextLine;
+                        option = br.readLine();
+                    } else {
+                        option = nextLine;
+                    }
 
-//                    In case options in multiple lines
+                    // In case options are in multiple lines
                     String lineAfterQuestion = br.readLine();
-                    if(lineAfterQuestion.contains(",")||lineAfterQuestion.contains("character")){
+                    if (lineAfterQuestion.contains(",") || lineAfterQuestion.contains("character")) {
                         option = option + lineAfterQuestion;
                         answer = br.readLine();
+                    } else {
+                        answer = lineAfterQuestion;
                     }
-                    else{answer = lineAfterQuestion;}
-                    String[] choice = displayOptions(option);
-                    List<String> choices= Arrays.asList(choice);
+
+                    questions.add(new TriviaQuestion(question, displayOptions(option), answer));
                     String blank = br.readLine();
+                }
 
-                    // Increment the question counter
-                    questionCount++;
+                // Display and review questions
+                for (int i = 0; i < questions.size(); i++) {
+                    TriviaQuestion currentQuestion = questions.get(i);
 
+                    // Check if the question has been attempted
+                    if (i < dayCount - 1) {
+                        reviewQuestion(currentQuestion, true);
+                    } else {
+                        // Offer to attempt the question
+                        System.out.println("Day " + (i + 1) + " - Question not attempted.");
+                        System.out.print("Do you want to attempt this question now? (yes/no): ");
+                        Scanner scanner = new Scanner(System.in);
+                        String userChoice = scanner.next().toLowerCase();
 
-                    // Display the question based on dayCount
-                    if (questionCount == dayCount) {
-                        int points = displayQuestion(dayCount, question, choices, answer, blank);
-                        totalPoints += points;
-                        System.out.println("You have been awarded " + points + " point(s), you now have " + totalPoints + " points.\n");
-                        dayCount++;
-                        break;
+                        if (userChoice.equals("yes")) {
+                            int points = displayQuestion(i + 1, currentQuestion.getQuestion(),
+                                    currentQuestion.getChoices(), currentQuestion.getAnswer(), "");
+                            System.out.println("You have been awarded " + points + " point(s).");
+                        } else {
+                            System.out.println("Skipping question.\n");
+                        }
                     }
                 }
-//                catch and identify the errors when the code runs
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
-        public static int calculateDay(LocalDate RegistrationDate, LocalDate currentDate) {
-            long days = ChronoUnit.DAYS.between(RegistrationDate, currentDate)+1;
-            return (int) days ;
+        public static int calculateDay(LocalDate registrationDate, LocalDate currentDate) {
+            long days = ChronoUnit.DAYS.between(registrationDate, currentDate) + 1;
+            return (int) days;
         }
 
-        public static <choices> int displayQuestion(int dayCount, String question,  List<String> choices, String answer, String blank) {
+        public static void reviewQuestion(TriviaQuestion question, boolean showAnswer) {
+            System.out.println("Reviewing Question:");
+            System.out.println("======================================================================");
+            System.out.println(question.getQuestion());
+
+            // Display the answer if requested
+            if (showAnswer) {
+                System.out.println("Correct Answer: " + question.getAnswer());
+            }
+
+            System.out.println("======================================================================\n");
+        }
+
+        public static int displayQuestion(int dayCount, String question, List<String> choices, String answer, String blank) {
             Scanner scanner = new Scanner(System.in);
 
             System.out.println("Day " + dayCount + " Trivia (Attempt #1)");
@@ -131,13 +155,40 @@ class Trivia {
                     System.out.println("Congratulations! You answered it correctly.\n");
                     return 1; // 1 point for the second attempt
                 } else {
-                    System.out.printf("Incorrect. The correct answer is: %s \n" , answer);
+                    System.out.printf("Incorrect. The correct answer is: %s \n", answer);
                     return 0; // 0 points for incorrect answer
                 }
             }
         }
 
         // Split the options in the txt file
-        public static String[] displayOptions(String optionLine){
-            return optionLine.split(",");}
-    }}
+        public static String[] displayOptions(String optionLine) {
+            return optionLine.split(",");
+        }
+    }
+
+// Class to represent a trivia question
+public static class TriviaQuestion {
+    private String question;
+    private List<String> choices;
+    private String answer;
+
+    public TriviaQuestion(String question, String[] choices, String answer) {
+        this.question = question;
+        this.choices = Arrays.asList(choices);
+        this.answer = answer;
+    }
+
+    public String getQuestion() {
+        return question;
+    }
+
+    public List<String> getChoices() {
+        return choices;
+    }
+
+    public String getAnswer() {
+        return answer;
+    }
+}
+}
